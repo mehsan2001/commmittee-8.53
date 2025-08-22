@@ -1,0 +1,217 @@
+
+App Title: Committee (ROSCA) App
+
+Purpose:
+A platform for managing rotating savings committees, with Admin and User dashboards, integrated with Firebase Authentication and Cloud Firestore for secure data handling.
+
+🎨 Color Palette
+
+Background: Dark gray #1C2526
+
+Main Text: White #FFFFFF
+
+Secondary Text: Light gray #A0A0A0
+
+Card Backgrounds: Darker gray #2A2F32
+
+Headings: Gradient from cyan to neon green (#00FFFF → #39FF14)
+
+Icons / Accents: Cyan #00FFFF
+
+Borders / Outlines: Light orange #FF8C00
+
+🔐 Authentication
+
+Sign Up / Login for both Admin and Users
+
+Username + 4-digit PIN authentication
+
+Firebase Authentication for customerUid & craftsmanUid
+
+Firestore integration: Create and Use .env file for credentials.
+
+UID Safety:
+
+customerUid and craftsmanUid from Firebase Auth
+
+paymentId, userId, committeeId from Firestore auto-IDs
+
+Ensure unique & consistent cross-linking between collections
+
+📂 Firestore Structure (prefix: cmt_rplt)
+
+Example Collections:
+
+cmt_rplt_committees
+
+cmt_rplt_users
+
+cmt_rplt_payments
+
+cmt_rplt_payouts
+
+cmt_rplt_notifications
+
+📊 Admin Dashboard Features
+
+Tabs:
+
+Dashboard Overview → total committees, members, payments, pending payouts
+
+Committees
+
+Create new (name, amount, members, start date, months (5 ,10 ) )
+
+View with search & filters
+
+Payments Received
+
+View requests (approve/reject + remarks)
+
+Payment history with filters
+
+Payouts
+
+Schedule payouts (user, committee, amount, date)
+
+View payout history
+
+Users
+
+Approve join requests, remove members, reset PIN
+
+Settings
+
+Change PIN, username, bank details, upload signature/logo
+
+Buttons:
+➕ Create Committee
+✅ Approve Payment
+❌ Reject Payment
+📤 Initiate Payout
+🔍 View Details
+🔄 Refresh Data
+
+👤 User Dashboard Features
+
+Tabs:
+
+My Dashboard → overview of joined committees, payment status, upcoming payouts
+
+Available Committees → view open committees, request to join
+
+My Payments
+
+Submit payment (bank details, amount, receipt upload)
+
+Payment history
+
+My Payouts → status & history
+
+Notifications → reminders, alerts, admin messages
+
+Settings → change PIN, username, bank account details
+
+Buttons:
+📤 Submit Payment
+📨 Request to Join
+🔍 View Committee Details
+🗑 Cancel Join Request
+🔄 Refresh Data
+
+🔄 Committee & Payment Workflow
+
+Committee Creation:
+
+Admin: Create committee → set rules, members count, start date
+
+Users: Request to join available committees
+
+Admin: Approves requests → committee starts when full
+
+Payments:
+
+User: Submit payment (bank details + receipt image)
+
+Firestore: Store payment (status = pending)
+
+Admin: Approve / reject payment
+
+If approved → status = Paid → record in history
+
+Payouts:
+
+Admin: Select user → enter payout details → save to Firestore (status = pending)
+
+User: Mark as received → Firestore updates to Completed
+
+Folder Structure:
+
+rosca-app/
+│  .env                # Firebase credentials (not committed to Git)
+│  package.json
+│  tailwind.config.js
+│  vite.config.js
+│  
+└── src/
+    │  main.jsx
+    │  App.jsx
+    │  firebase.js          # Firebase config & init
+    │  
+    ├── context/
+    │   └── AuthContext.jsx # Authentication state + role handling
+    │
+    ├── services/
+    │   └── firestore.js    # Firestore CRUD functions
+    │
+    ├── components/
+    │   ├── Navbar.jsx
+    │   ├── Sidebar.jsx
+    │   └── GradientHeading.jsx
+    │
+    ├── pages/
+    │   ├── Login.jsx
+    │   ├── Signup.jsx
+    │   ├── admin/
+    │   │   ├── AdminDashboard.jsx
+    │   │   ├── Committees.jsx
+    │   │   ├── Payments.jsx
+    │   │   ├── Payouts.jsx
+    │   │   ├── Users.jsx
+    │   │   └── Settings.jsx
+    │   └── user/
+    │       ├── UserDashboard.jsx
+    │       ├── AvailableCommittees.jsx
+    │       ├── MyPayments.jsx
+    │       ├── MyPayouts.jsx
+    │       ├── Notifications.jsx
+    │       └── Settings.jsx
+
+
+
+📍 Visual Workflow (Text Form with Arrows)
+[Admin Creates Committee] 
+      ↓
+[Users View Available Committees]
+      ↓
+[User Requests to Join] → [Admin Approves/Rejects]
+      ↓ (if approved)
+[Committee Starts when Full]
+      ↓
+=== PAYMENT CYCLE ===
+[User Submits Payment Form + Receipt]
+      ↓
+[Firestore Saves Payment: status = pending]
+      ↓
+[Admin Reviews Payment]
+   ├── Approve → Status = Paid → Add to History
+   └── Reject → Status = Rejected → Notify User
+      ↓
+=== PAYOUT CYCLE ===
+[Admin Selects User for Payout]
+      ↓
+[Firestore Saves Payout: status = pending]
+      ↓
+[User Confirms Received]
+      ↓
+[Firestore Updates Payout: status = Completed]

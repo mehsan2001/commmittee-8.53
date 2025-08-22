@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload</title>
+</head>
+<body>
+    <h1>Test Upload Endpoint</h1>
+    <form id="uploadForm">
+        <input type="file" name="file" id="fileInput" required>
+        <input type="text" name="paymentId" value="test123" required>
+        <button type="submit">Upload</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            
+            formData.append('file', fileInput.files[0]);
+            formData.append('paymentId', 'test123');
+            
+            try {
+                const response = await fetch('/api/upload-receipt', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                document.getElementById('result').innerHTML = 
+                    `<h2>Response:</h2><pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<h2>Error:</h2><pre>${error.message}</pre>`;
+            }
+        });
+    </script>
+</body>
+</html>

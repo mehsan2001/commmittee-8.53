@@ -1,0 +1,366 @@
+To start the development server, you should use the command : 
+
+.\run-dev.ps1
+
+Firebase uid error:  The server routes in server/routes.ts use the storage.getUser(id) method which expects the Firestore document ID, but the client is using the Firebase UID (firebaseUid) as the user identifier. The client creates users with a random document ID, but then tries to use the Firebase UID as the user ID in API calls. Let me check the exact route that's failing.
+
+Perfect! This confirms the issue. The server is returning "User not found" for the Firebase UID "FjFIrzOZGEKt2uvZN4Q6", which means the client is indeed using the Firebase UID instead of the Firestore document ID. The problem is in the mapping between Firebase UID and Firestore document ID. I need to check if the user actually exists in Firestore and what their document ID is. Let me create a simple script to check the Firestore collection directly.
+
+Promot for firestore uid mismatch errors:
+
+Please always ensure correct mapping between Firebase UID and Firestore document ID.
+
+Key points to follow:
+
+UID vs Document ID: Never confuse Firebase auth().uid with the Firestore document ID. They are different identifiers.
+
+User Storage Strategy:
+
+Always store user documents in Firestore using the Firebase UID as the document ID (e.g., /users/{firebaseUid}) unless explicitly stated otherwise.
+
+When writing server routes, always retrieve users by firebaseUid if that’s the intended identifier.
+
+If the project requires using a random Firestore document ID, always maintain a mapping field like { firebaseUid: "xxxxx" } in the document so the server can resolve UID → Firestore ID correctly.
+
+Route Consistency: Make sure server/routes.ts or equivalent APIs expect the same identifier the client is sending (don’t mismatch UID vs Firestore ID).
+
+Error Prevention: Before assuming "User not found", always check whether the issue is caused by identifier mismatch. Add logs for both firebaseUid and Firestore doc ID lookups.
+
+Helper Function: Always implement a helper method, for example:
+
+async function getUserByUid(uid: string) {
+  const userDoc = await firestore.collection("users").doc(uid).get();
+  return userDoc.exists ? { id: userDoc.id, ...userDoc.data() } : null;
+}
+
+
+Or, if random Firestore IDs are used:
+
+async function getUserByUid(uid: string) {
+  const snapshot = await firestore.collection("users").where("firebaseUid", "==", uid).limit(1).get();
+  return snapshot.empty ? null : { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+}
+
+
+Testing & Debugging: Always include a small Firestore check script to verify which IDs exist in the collection whenever a UID/ID mismatch error happens.
+
+
+ This script handles setting up the environment and running npm run dev for you
+---------------------------------------
+Implement an early payout fee structure in the ROSCA app: in 5-month committees, users selecting the 1st or 2nd payout slot pay a 10% fee; in 10-month committees, the 1st and 2nd slots pay 10%, while the 3rd and 4th slots pay 7.5%. number of members should be selectable from dropdown(no fixed limit). Fees are deducted at payout (e.g., Rs 50,000 → Rs 5,000 fee)
+
+I want to implement above logic in the app.
+Analyse the workflow of users joining,payments and payouts in admin and user dashboard and check tabs,buttons and functionality of the full app.
+How user id, uid and document id will work.so that there is no mismatch.
+What changes need to be made in ui and functionality and worflows in committes creation by admin ,user (selection for which month for payout and fees deduction calculations) forms and modals .
+Give me complete step by step plan, workflow ,functionality and logic implementation.Ask befor applying.
+
+--------------------------------------
+AmpersandNotAllowed parsing errors and related PowerShell compatibility issues should be resolved. The updates to `dev.ps1` and `dev.bat` , along with the creation of new scripts like `run-dev.bat` , `run-dev.ps1` , and `dev-fixed.ps1` , were specifically designed to address these environment and script execution problems.
+
+These fixes target how the development server is launched and managed, not the application's features or workflows themselves. Therefore, adding new features or workflows to your application should not reintroduce these specific PowerShell-related errors, as long as you continue to use the provided robust scripts to start your development server.
+
+---------------------------------------
+
+Normal Requirements for Users to Join a Committee Collection App
+
+The requirements ensure identity verification, financial reliability, and inclusivity, especially for women and middle/lower-income users.
+
+Eligibility Criteria
+
+Age: 18+ (legal for financial contracts in Pakistan).
+
+Residency: Pakistani residents; diaspora may join with extra checks.
+
+Financial Capability: Must afford monthly contributions (e.g., Rs 1,000–10,000). Proof via income or references.
+
+Contact Info: Valid +92 phone number and email.
+
+Bank/Mobile Wallet: Linked account (JazzCash, Easypaisa, bank).
+
+Shariah Compliance: Agreement to interest-free savings.
+
+Behavioral Expectations
+
+Pay monthly contributions on time.
+
+No fraud (fake identity, misuse of payouts).
+
+Join random verified groups or invite trusted contacts.
+
+Verification Process
+
+CNIC and financial reliability checked.
+
+Completed in 2–5 days (faster with automation).
+
+Reliability score may affect early payout eligibility.
+
+Accessibility
+
+Multi-language support (Urdu, English, regional).
+
+Inclusive for women; no male guarantors required.
+
+Simple UX for users with low digital literacy.
+
+Documents Typically Required
+
+CNIC (front/back image) – verifies age, identity, residency.
+
+Proof of Income (salary slip, bank statement, business docs, or references).
+
+Selfie Verification (with CNIC or code) – prevents fraud.
+
+References (1–2 family/friends) – adds trust, esp. for informal workers.
+
+Bank/Mobile Wallet Details – verified via OTP/test transaction.
+
+Optional Docs (utility bill, rental agreement, employment contract) – for higher-value committees.
+
+Industry Norms in Pakistan
+
+Minimal documentation for accessibility: CNIC, selfie, references; optional income proof.
+
+Shariah compliance: No interest or collateral; trust-based.
+
+Digital submission: Uploads via app; agents for rural users.
+
+Speed: Target 1–2 days; delays frustrate users.
+
+Inclusivity: Especially for women and informal workers.
+
+Regulatory compliance: CNIC/KYC, AML rules from State Bank.
+
+Comparison with Oraan
+
+Requires CNIC, selfie, income proof, and references.
+
+Delays in verification are common.
+
+Allows minimal docs for smaller committees, stricter checks for large ones.
+
+Integrates with JazzCash, Easypaisa, banks.
+
+Recommendations for Your App
+
+Automate CNIC + facial checks (reduce delays).
+
+Allow flexible proof (income OR references).
+
+Multi-language onboarding with tutorials.
+
+Encrypt docs; comply with data laws.
+
+Real-time verification updates + resubmission option.
+
+Example User Journey
+
+Sign up with phone + email.
+
+Upload CNIC + selfie.
+
+Submit payslip OR references.
+
+Link JazzCash account.
+
+Verification within 48 hrs → reliability score assigned.
+
+Join committee under Shariah-compliant rules.
+
+✅ Summary: Users must be 18+, Pakistani, financially capable, and have valid contact + bank/mobile wallet. Required docs: CNIC, selfie, income proof or references, and linked account. Optional docs for larger committees. A secure, fast, Shariah-compliant, and inclusive onboarding process ensures trust and accessibility.
+
+--------------------------------------
+## Complete Implementation Plan for Early Payout Fee Structure
+### 🔍 Current Workflow Analysis
+Committee Creation (Admin) :
+
+- Admin creates committees with: name, amount, memberCount (5-10), duration (5-10 months)
+- Users join via AvailableCommittees → Request → Admin Approval
+- No current payout slot selection mechanism
+User Joining Process :
+
+- Users view available committees → Request to join → Admin approves
+- No mechanism for users to select payout slot preference
+Payout Process :
+
+- Admin manually creates payouts for users in committees
+- No fee calculation or slot-based fee structure
+### 📊 Data Structure Requirements
+New Fields Needed :
+
+1. 1.
+   Committee Members : Add payoutSlot field for each member
+2. 2.
+   Payouts : Add originalAmount , feeAmount , netAmount , slotNumber
+3. 3.
+   Committee : Add payoutSlots array to track assigned slots
+### 🏗️ Step-by-Step Implementation Plan Phase 1: Database Schema Updates
+1. 1.
+   Update Committee Schema :
+   
+   - Add payoutSlots: Array<{userId: string, slot: number, feeRate: number}>
+   - Add slotSelectionDeadline: Date
+2. 2.
+   Update Payout Schema :
+   
+   - Add slotNumber: number
+   - Add feeRate: number
+   - Add originalAmount: number
+   - Add feeAmount: number Phase 2: Fee Calculation Logic
+```
+// Fee calculation utility
+const calculateEarlyPayoutFee = 
+(duration: number, slot: number): 
+number => {
+  if (duration === 5) {
+    return slot <= 2 ? 0.10 : 0; // 
+10% for 1st & 2nd slots
+  } else if (duration === 10) {
+    if (slot <= 2) return 0.
+10;   // 10% for 1st & 2nd
+    if (slot <= 4) return 0.075; // 
+7.5% for 3rd & 4th
+    return 0; // No fee for later 
+slots
+  }
+  return 0;
+};
+``` Phase 3: UI/UX Changes
+3.1 User Join Committee Flow :
+
+- AvailableCommittees.tsx : Add payout slot selection dropdown
+- Show available slots with fee rates
+- Validate slot availability (no duplicates)
+3.2 Committee Creation :
+
+- Admin Committees.tsx : Add slot assignment interface
+- Allow admin to assign slots to approved members
+3.3 Payout Creation :
+
+- Admin Payouts.tsx : Display fee calculation
+- Show: Original Amount, Fee Rate, Fee Amount, Net Amount
+- Auto-calculate based on slot assignment Phase 4: User ID Consistency
+Current ID Usage :
+
+- userData.id = Firestore document ID (from AuthContext)
+- firebaseUid = Firebase Authentication UID
+- All references use Firestore document ID consistently
+No changes needed - current system is consistent
+ Phase 5: Workflow Modifications
+New User Flow :
+
+1. 1.
+   User requests to join committee
+2. 2.
+   Admin approves request
+3. 3.
+   NEW : Admin assigns payout slot to user
+4. 4.
+   NEW : System calculates fee rate for slot
+5. 5.
+   When payout is due, system deducts fee automatically
+Admin Payout Creation :
+
+1. 1.
+   Select user & committee
+2. 2.
+   NEW : Show assigned slot and fee rate
+3. 3.
+   NEW : Display: Rs 50,000 → Rs 5,000 fee → Rs 45,000 net
+4. 4.
+   Confirm payout with fee deduction Phase 6: Validation & Error Handling
+Slot Validation :
+
+- Ensure no duplicate slots in same committee
+- Validate slot number ≤ memberCount
+- Prevent slot changes after committee starts
+Fee Display :
+
+- Show fee rates in committee details
+- Display net amounts in user dashboard
+- Include fee breakdown in payout notifications
+### 🎯 UI Components to Modify
+1. 1.
+   AvailableCommittees.tsx : Add slot selection
+2. 2.
+   Committees.tsx : Add slot assignment interface
+3. 3.
+   Payouts.tsx : Add fee calculation display
+4. 4.
+   MyPayouts.tsx : Show net amounts and fee details
+5. 5.
+   UserDashboard : Display slot info and upcoming fees
+### ⚡ Implementation Priority
+1. 1.
+   High Priority : Schema updates, fee calculation, payout processing
+2. 2.
+   Medium Priority : UI slot selection, validation logic
+3. 3.
+   Low Priority : Enhanced fee display, notifications
+### 💡 Next Steps
+Would you like me to proceed with implementing this plan? I recommend starting with:
+
+1. 1.
+   Database schema updates
+2. 2.
+   Fee calculation utility functions
+3. 3.
+   Payout processing modifications
+
+
+i want to add input fields and uploads images in user settings.i want data to add in fire store collections and use multer for uplaods and image uploads can be stored in root uploads folder.like user payments to admin works. check it.
+these details should be sent to admin user tab with images and details viewable for admin.
+
+Phone
+Email 
+CNIC 
+Address 
+City
+State
+
+Upload Documents:
+
+Last 3 months bank statement (PDF or image)
+Salary slip / income proof (optional but strong for trust)
+CNIC Front (upload image)
+CNIC Back (upload image)
+Recent Utility Bill 
+
+Guarantor Details (2 Required)
+
+For each guarantor:
+
+Full Name
+Phone Number
+CNIC Number
+Relationship with user
+
+CNIC Copy (front & back upload)
+
+Short Secure Onboarding & UID Handling Prompt
+
+Use Firebase UID as the document ID in Firestore (/users/{firebaseUid}) unless project requires random IDs.
+
+If using random Firestore IDs, always store a field { firebaseUid: "xxxxx" } for UID → Firestore ID mapping.
+
+Route consistency: Ensure server/routes.ts APIs expect the same identifier the client sends (UID vs Firestore ID).
+
+Error prevention: Before returning "User not found", log and check both firebaseUid and Firestore doc ID.
+
+Helper functions:
+
+// Direct UID
+async function getUserByUid(uid: string) {
+  const doc = await firestore.collection("users").doc(uid).get();
+  return doc.exists ? { id: doc.id, ...doc.data() } : null;
+}
+
+// Random IDs
+async function getUserByUid(uid: string) {
+  const snap = await firestore.collection("users").where("firebaseUid", "==", uid).limit(1).get();
+  return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+
+Testing: Always run a Firestore check script to confirm which IDs exist when UID/ID mismatch errors occur.
